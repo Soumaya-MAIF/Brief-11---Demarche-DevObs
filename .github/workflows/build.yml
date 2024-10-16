@@ -1,0 +1,48 @@
+on:
+  push:
+
+permissions:
+  contents: write
+ 
+jobs:
+  get-version:
+    uses: shiipou/github-actions/.github/workflows/get-version.yml@main
+    with:
+      release-branches: '^(main)$'
+
+  build:
+   name: rust build
+   runs-on: ubuntu-latest
+   if: ${{ needs.get-version.outputs.will-release == 'true' }}
+   needs:
+   - get-version
+
+   steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: stable
+            target: wasm32-unknown-unknown 
+      
+      - name: trunk install
+        uses: jetli/trunk-action@v0.5.0
+
+      - name: Build with Trunk
+        env:
+         VERSION: "${{ needs.get-version.outputs.version }}"     
+        run: trunk build --release
+      - uses: actions/upload-artifact@v4
+        with:
+           name: rust
+           path: dist/*
+    
+
+
+
+          
+        
+       
+
+  
