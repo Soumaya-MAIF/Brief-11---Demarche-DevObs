@@ -63,7 +63,7 @@ jobs:
             REPO: "${{ github.repository }}"
             COMMIT: "${{ github.sha }}"
             GH_TOKEN: "${{ github.token }}"
-            PRERELEASE: "${{ needs.get-version.outputs.is-prerelease }}"
+            PRERELEASE: ${{ needs.get-version.outputs.is-prerelease }}
             CHANGELOG: "${{ needs.get-version.outputs.changelogs }}"
           run: |
             echo "${{ needs.get-version.outputs.changelogs }}" > changelog.md
