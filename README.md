@@ -9,6 +9,7 @@ This is a fairly minimal app that show a "Hello World" web app in Rust with an i
 If you don't already have it installed, it's time to install Rust: <https://www.rust-lang.org/tools/install>.
 The rest of this guide assumes a typical Rust installation which contains both `rustup` and Cargo.
 
+
 To compile Rust to WASM, we need to have the `wasm32-unknown-unknown` target installed.
 If you don't already have it, install it with the following command:
 
