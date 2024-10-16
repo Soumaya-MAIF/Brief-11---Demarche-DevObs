@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# Brief-11---Demarche-DevObs
-=======
 # Hello World - Counting Edition
 
 This is a fairly minimal app that show a "Hello World" web app in Rust with an interactive counter.
@@ -79,4 +76,3 @@ It'll use the [<Counter />](src/counter.rs) component inside.
 This repo is shipped with the MIT license.
 
 [trunk]: https://github.com/thedodd/trunk
->>>>>>> 08f91a2 (Initial commit)
