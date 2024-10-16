@@ -48,25 +48,30 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: [ get-version, build ]
-    if: ${{ needs.get-version.outputs.will-release }}
-        
-    steps:
-    
-      - name: Download artifacts
-        uses: actions/download-artifact@v4.1.8
-        with:
-          name: rust
-          path: dist/
-      - name: Zip files artifacts
-        run: zip -r artifacts.zip dist/*
-      - name: Create Github Release
-        env:
-          VERSION: "${{ needs.get-version.outputs.version }}"
-          REPO: "${{ github.repository }}"
-          COMMIT: "${{ github.sha }}"
-          GH_TOKEN: "${{ github.token }}"
-        run:
-          gh release create --repo $REPO --target $COMMIT $VERSION artifacts.zip
+
+    steps: 
+        - name: Download artifacts
+          uses: actions/download-artifact@v4.1.8
+          with:
+            name: rust
+            path: dist/
+        - name: Zip files artifacts
+          run: zip -r artifacts.zip dist/*
+        - name: Create Github Release
+          env:
+            VERSION: "${{ needs.get-version.outputs.version }}"
+            REPO: "${{ github.repository }}"
+            COMMIT: "${{ github.sha }}"
+            GH_TOKEN: "${{ github.token }}"
+            PRERELEASE: "${{ needs.get-version.outputs.is-prerelease }}"
+            CHANGELOG: "${{ needs.get-version.outputs.changelogs }}"
+          run: |
+            echo "${{ needs.get-version.outputs.changelogs }}" > changelog.md
+            if [ "$PRERELEASE" == "true" ]; then
+            gh release create --prerelease --repo $REPO --target $COMMIT -F $CHANGELOG "v$VERSION" artifacts.zip
+            else
+            gh release create --repo $REPO --target $COMMIT -F $CHANGELOG "v$VERSION" artifacts.zip
+            fi
         
 
           
