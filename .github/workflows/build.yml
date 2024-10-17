@@ -1,44 +1,60 @@
 on:
   push:
-
+    # Déclenche le workflow lorsque des modifications sont poussées sur les branches 'main' ou 'beta'
     branches:
       - main
       - beta
 
 permissions:
+  # Accord de permission pour écrire des contenus dans le dépôt
   contents: write
  
 jobs:
   get-version:
+    # Utilise un workflow externe pour obtenir la version actuelle basée sur les branches de release et prerelease
     uses: shiipou/github-actions/.github/workflows/get-version.yml@main
     with:
+      # Définir la branche 'main' pour les releases officielles
       release-branches: '^(main)$'
+      # Définir la branche 'beta' pour les pre-releases
       prerelease-branches: "^(beta)$"
 
   build:
+    # Nom du job qui gère la construction du projet Rust
    name: rust build
+    # Exécute le job sur une machine virtuelle Ubuntu
    runs-on: ubuntu-latest
+    # Condition : si la version sera release, ce job sera exécuté
    if: ${{ needs.get-version.outputs.will-release == 'true' }}
+    # Ce job dépend du job 'get-version'
    needs:
    - get-version
 
 
    steps:
+     # Récupération du code source du dépôt
       - name: Checkout
         uses: actions/checkout@v2
+
+     # Installer le compilateur Rust avec la toolchain stable pour la cible WebAssembly
       - name: Install rust
         uses: actions-rs/toolchain@v1
         with:
             toolchain: stable
-            target: wasm32-unknown-unknown 
-      
+            target: wasm32-unknown-unknown
+
+     # Installation de l'outil 'trunk' pour construire des projets front-end Rust
       - name: trunk install
         uses: jetli/trunk-action@v0.5.0
 
+     # Construction du projet Rust en mode release avec Trunk
       - name: Build with Trunk
         env:
+          # Utilisation de la version générée par le job 'get-version'
          VERSION: "${{ needs.get-version.outputs.version }}"     
         run: trunk build --release
+
+     # Envoi des artefacts (fichiers générés) pour les utiliser dans le job suivant
       - uses: actions/upload-artifact@v4
         with:
            name: rust
@@ -47,18 +63,25 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    # Ce job dépend des jobs 'get-version' et 'build'
     needs: [ get-version, build ]
 
-    steps: 
+    steps:
+      # Télécharge les artefacts générés dans le job 'build'
         - name: Download artifacts
           uses: actions/download-artifact@v4.1.8
           with:
             name: rust
             path: dist/
+
+      # Crée une archive ZIP des artefacts téléchargés
         - name: Zip files artifacts
           run: zip -r artifacts.zip dist/*
+
+      #Crée une release GitHub, avec ou sans prerelease selon la version
         - name: Create Github Release
           env:
+      # Variables d'environnement nécessaires pour la release
             VERSION: "${{ needs.get-version.outputs.version }}"
             REPO: "${{ github.repository }}"
             COMMIT: "${{ github.sha }}"
